@@ -3,7 +3,6 @@
 #include <string.h>
 unsigned charCount = 1, idCount = 0, lineCount = 1;
 #define MAX_TABLE_NUM 100
-#define MAX_ID_LEN 50
 int count_symbol = 0;
 char **table;
 void create();
@@ -14,7 +13,6 @@ void dump();
 space [ \t]
 eol \n
 carriage \r
-comment (\/\/).*|\/\*(.|\n)*?\*\/
 symbol [\,\:\;\(\)\[\]\{\}]
 
 addition \+
@@ -24,6 +22,7 @@ decrement \-\-
 mutiplication \*
 division \/
 modulus \%
+assignment \=
 less \<
 less_or_equal \<\=
 greater_or_equal \>\=
@@ -33,12 +32,15 @@ not_equal \!\=
 logical_and \&\&
 logical_or \|\|
 logical_not \!
-operator  {addition}|{increment}|{subtraction}|{decrement}|{mutiplication}|{division}|{modulus}|{less}|{less_or_equal}|{greater_or_equal}|{greater}|{equal}|{not_equal}|{logical_and}|{logical_or}|{logical_not}
+operator  {addition}|{increment}|{subtraction}|{decrement}|{mutiplication}|{division}|{modulus}|{assignment}|{less}|{less_or_equal}|{greater_or_equal}|{greater}|{equal}|{not_equal}|{logical_and}|{logical_or}|{logical_not}
 reserved_word boolean|break|byte|case|char|catch|class|const|continue|default|do|double|else|extends|false|final|finally|float|for|if|implements|int|long|main|new|print|private|protected|public|return|short|static|string|switch|this|true|try|void|while
 float \-?[0-9]+[.eE][0-9]*[eE]?[\-\+]?[0-9]*
 integer \-?[0-9]+
-id [A-Za-z_][A-Za-z0-9_]*
+comment (\/\/).*|\/\*(.|\n)*?\*\/
 string \"(\\\"|[^\\\"])*\"
+error_string (\'(\\\"|[^\\\"])*\')|(\"[^\"\\]*[\"\\][^\"\\]*\")|(\"[^ \n]*?)
+id [A-Za-z_\$][A-Za-z0-9_\$]*
+error_id [^ \nA-Za-z_\$][A-Za-z0-9_\$]+
 %%
 {space} {
 	charCount++;
@@ -48,8 +50,6 @@ string \"(\\\"|[^\\\"])*\"
 	charCount = 1;
 }
 {carriage} {
-}
-{comment} {
 }
 {symbol} {
 	printf("Line: %d, 1st char: %d, \"%s\" is an \"symbol\".\n", lineCount, charCount, yytext);
@@ -71,15 +71,19 @@ string \"(\\\"|[^\\\"])*\"
 	printf("Line: %d, 1st char: %d, \"%s\" is an \"integer\".\n", lineCount, charCount, yytext);
 	charCount += yyleng;
 }
+{comment} {
+	printf("Line: %d, 1st char: %d, \"%s\" is an \"integer\".\n", lineCount, charCount, yytext);
+	for(int i = 0; i < yyleng; i++)
+		if(yytext[i] == '\n')
+			lineCount++;
+	charCount += yyleng;
+}
 {string} {
-	char* temp = (char*)malloc(strlen(yytext));
+	char* temp = (char*)malloc(yyleng);
 	char* dst = temp;
-	int cout_source_len = charCount;
-	for(int i = 0; i < cout_source_len; i++) {
-		if(yytext[i] == '\\') {
-			cout_source_len++;
+	for(int i = 0; i < yyleng; i++) {
+		if(yytext[i] == '\\')
 			continue;
-		}
 		*temp = yytext[i];
 		temp++;
 	}
@@ -87,13 +91,21 @@ string \"(\\\"|[^\\\"])*\"
 	printf("Line: %d, 1st char: %d, %s is an \"string\".\n", lineCount, charCount, dst);
 	charCount += yyleng;
 }
+{error_string} {
+	printf("Line: %d, 1st char: %d, \"%s\" is an \"INVALID STRING\".\n", lineCount, charCount, yytext);
+	charCount += yyleng;
+}
 {id} {
 	printf("Line: %d, 1st char: %d, \"%s\" is an \"ID\".\n", lineCount, charCount, yytext);
 	charCount += yyleng;
 	insert(yytext);
 }
+{error_id} {
+	printf("Line: %d, 1st char: %d, \"%s\" is an \"INVALID ID\".\n", lineCount, charCount, yytext);
+	charCount += yyleng;
+}
 . {
-	printf("Line: %d, 1st char: %d, \"%s\" is an \"error\".\n", lineCount, charCount, yytext);
+	printf("Line: %d, 1st char: %d, \"%s\" is an \"GENERAL ERROR\".\n", lineCount, charCount, yytext);
 	charCount += yyleng;
 }
 %%
