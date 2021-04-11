@@ -36,11 +36,11 @@ operator  {addition}|{increment}|{subtraction}|{decrement}|{mutiplication}|{divi
 reserved_word boolean|break|byte|case|char|catch|class|const|continue|default|do|double|else|extends|false|final|finally|float|for|if|implements|int|long|main|new|print|private|protected|public|return|short|static|string|switch|this|true|try|void|while
 float \-?[0-9]+[.eE][0-9]*[eE]?[\-\+]?[0-9]*
 integer \-?[0-9]+
-comment (\/\/).*|\/\*(.|\n)*?\*\/
+comment (\/\/)[^\n\r]*|\/\*(.|\n)*?\*\/
 string \"(\\\"|[^\\\"])*\"
 error_string (\'(\\\"|[^\\\"])*\')|(\"([^\"]|[\\])*\")|(\"[^ \n]*?)
 id [A-Za-z_\$][A-Za-z0-9_\$]*
-error_id [^ \nA-Za-z_\$][A-Za-z0-9_\$]+
+error_id [0-9\^#][A-Za-z0-9_\$]+
 %%
 {space} {
 	charCount++;
@@ -72,7 +72,7 @@ error_id [^ \nA-Za-z_\$][A-Za-z0-9_\$]+
 	charCount += yyleng;
 }
 {comment} {
-	printf("Line: %d, 1st char: %d, \"%s\" is an \"integer\".\n", lineCount, charCount, yytext);
+	printf("Line: %d, 1st char: %d, \"%s\" is an \"comment\".\n", lineCount, charCount, yytext);
 	for(int i = 0; i < yyleng; i++)
 		if(yytext[i] == '\n')
 			lineCount++;
