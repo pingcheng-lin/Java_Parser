@@ -1,5 +1,0 @@
-need to read carriage
-如果前面的token會吃掉後面token所包含的所有可能，造成後token無用，會有error
-網站使用正常使用十確有問題ex:\".*?[^\\]\"對上"Text to "see" matches" qwe
-"Text to " " matches"
-"Text to "see" matches" 很怪

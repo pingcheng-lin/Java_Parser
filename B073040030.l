@@ -10,7 +10,8 @@ int lookup(char* s);
 int insert(char* s);
 void dump();
 %}
-space [ \t]
+space [ ]
+tab \t
 eol \n
 carriage \r
 symbol [\,\:\;\(\)\[\]\{\}]
@@ -44,6 +45,9 @@ error_id [0-9\^#][A-Za-z0-9_\$]+
 %%
 {space} {
 	charCount++;
+}
+{tab} {
+	charCount += 4;
 }
 {eol} {
 	lineCount++;
