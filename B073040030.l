@@ -1,14 +1,9 @@
 %{
+#include "y.tab.h" // Remember to includ this header file
 #include <stdio.h>
 #include <string.h>
-unsigned charCount = 1, idCount = 0, lineCount = 1;
-#define MAX_TABLE_NUM 100
-int count_symbol = 0;
-char **table;
-void create();
-int lookup(char* s);
-int insert(char* s);
-void dump();
+int charCount = 1, lineCount = 1;
+int start = 1;
 %}
 space [ ]
 tab \t
@@ -37,50 +32,139 @@ operator  {addition}|{increment}|{subtraction}|{decrement}|{mutiplication}|{divi
 reserved_word boolean|break|byte|case|char|catch|class|const|continue|default|do|double|else|extends|false|final|finally|float|for|if|implements|int|long|main|new|print|private|protected|public|return|short|static|string|switch|this|true|try|void|while
 float \-?[0-9]+[.eE][0-9]*[eE]?[\-\+]?[0-9]*
 integer \-?[0-9]+
-comment (\/\/)[^\n\r]*|\/\*(.|\n)*?\*\/
-string \"(\\\"|[^\\\"])*\"
-error_string (\'(\\\"|[^\\\"])*\')|(\"([^\"]|[\\])*\")|(\"[^ \n]*?)
+comment (\/\/)[^\n\r]*|"/*"([^*]|\*+[^*/])*\*+"/"
+string \"(\\.|[^"\\])*\"
 id [A-Za-z_\$][A-Za-z0-9_\$]*
 error_id [0-9\^#][A-Za-z0-9_\$]+
 %%
 {space} {
-	charCount++;
+    if(start == 1 && charCount == 1)
+        printf("Line %d : ", lineCount++);
+    printf(" ");
+    charCount++;
 }
 {tab} {
-	charCount += 4;
+    if(start == 1 && charCount == 1)
+        printf("Line %d : ", lineCount++);
+    printf("    ");
+    charCount += 4;
 }
 {eol} {
-	lineCount++;
+    printf("\nLine %d : ", lineCount++);
+    start = 0;
 	charCount = 1;
 }
 {carriage} {
 }
 {symbol} {
-	printf("Line: %d, 1st char: %d, \"%s\" is an \"symbol\".\n", lineCount, charCount, yytext);
+    if(start == 1 && charCount == 1)
+        printf("Line %d : ", lineCount++);
+	printf("%s", yytext);
 	charCount += yyleng;
+    if(!strcmp(yytext, ",")) return COMMA;
+    else if(!strcmp(yytext, ":")) return COLON;
+    else if(!strcmp(yytext, ";")) return SEMICOLON;
+    else if(!strcmp(yytext, "(")) return LP;
+    else if(!strcmp(yytext, ")")) return RP;
+    else if(!strcmp(yytext, "[")) return LS;
+    else if(!strcmp(yytext, "]")) return RS;
+    else if(!strcmp(yytext, "{")) return LC;
+    else if(!strcmp(yytext, "}")) return RC;
 }
 {operator} {
-	printf("Line: %d, 1st char: %d, \"%s\" is an \"operator\".\n", lineCount, charCount, yytext);
-	charCount += yyleng; 
+    if(start == 1 && charCount == 1)
+        printf("Line %d : ", lineCount++);
+	printf("%s", yytext);
+	charCount += yyleng;
+    if(!strcmp(yytext, "+")) return ADDITION;
+    else if(!strcmp(yytext, "++")) return INCREMENT;
+    else if(!strcmp(yytext, "-")) return SUBTRACTION;
+    else if(!strcmp(yytext, "--")) return DECREMENT;
+    else if(!strcmp(yytext, "*")) return MULTIPLICATION;
+    else if(!strcmp(yytext, "/")) return DIVISION;
+    else if(!strcmp(yytext, "%")) return MODULUS;
+    else if(!strcmp(yytext, "=")) return ASSIGN;
+    else if(!strcmp(yytext, "<")) return LESS;
+    else if(!strcmp(yytext, "<=")) return LESS_EQUAL;
+    else if(!strcmp(yytext, ">=")) return GREATER_EQUAL;
+    else if(!strcmp(yytext, ">")) return GREATER;
+    else if(!strcmp(yytext, "==")) return EQUAL;
+    else if(!strcmp(yytext, "!=")) return NOT_EQUAL;
+    else if(!strcmp(yytext, "&&")) return L_AND;
+    else if(!strcmp(yytext, "||")) return L_OR;
+    else if(!strcmp(yytext, "!")) return L_NOT;
 }
 {reserved_word} {
-	printf("Line: %d, 1st char: %d, \"%s\" is an \"reserved_word\".\n", lineCount, charCount, yytext);
+    if(start == 1 && charCount == 1)
+        printf("Line %d : ", lineCount++);
+	printf("%s", yytext);
 	charCount += yyleng;
+    if(!strcmp(yytext, "boolean")) return BOOLEAN;
+    else if(!strcmp(yytext, "break")) return BREAK;
+    else if(!strcmp(yytext, "byte")) return BYTE;
+    else if(!strcmp(yytext, "case")) return CASE;
+    else if(!strcmp(yytext, "char")) return CHAR;
+    else if(!strcmp(yytext, "catch")) return CATCH;
+    else if(!strcmp(yytext, "class")) return CLASS;
+    else if(!strcmp(yytext, "const")) return CONST;
+    else if(!strcmp(yytext, "continue")) return CONTINUE;
+    else if(!strcmp(yytext, "default")) return DEFAULT;
+    else if(!strcmp(yytext, "do")) return DO;
+    else if(!strcmp(yytext, "double")) return DOUBLE;
+    else if(!strcmp(yytext, "else")) return ELSE;
+    else if(!strcmp(yytext, "extends")) return EXTENDS;
+    else if(!strcmp(yytext, "false")) return FALSE;
+    else if(!strcmp(yytext, "final")) return FINAL;
+    else if(!strcmp(yytext, "finally")) return FINALLY;
+    else if(!strcmp(yytext, "float")) return FLOAT;
+    else if(!strcmp(yytext, "for")) return FOR;
+    else if(!strcmp(yytext, "if")) return IF;
+    else if(!strcmp(yytext, "implements")) return IMPLEMENTS;
+    else if(!strcmp(yytext, "int")) return INT;
+    else if(!strcmp(yytext, "long")) return LONG;
+    else if(!strcmp(yytext, "main")) return MAIN;
+    else if(!strcmp(yytext, "new")) return NEW;
+    else if(!strcmp(yytext, "print")) return PRINT;
+    else if(!strcmp(yytext, "private")) return PRIVATE;
+    else if(!strcmp(yytext, "protected")) return PROTECTED;
+    else if(!strcmp(yytext, "public")) return PUBLIC;
+    else if(!strcmp(yytext, "return")) return RETURN;
+    else if(!strcmp(yytext, "short")) return SHORT;
+    else if(!strcmp(yytext, "static")) return STATIC;
+    else if(!strcmp(yytext, "string")) return STRING;
+    else if(!strcmp(yytext, "switch")) return SWITCH;
+    else if(!strcmp(yytext, "this")) return THIS;
+    else if(!strcmp(yytext, "true")) return TRUE;
+    else if(!strcmp(yytext, "try")) return TRY;
+    else if(!strcmp(yytext, "void")) return VOID;
+    else if(!strcmp(yytext, "while")) return WHILE;
 }
 {float} {
-	printf("Line: %d, 1st char: %d, \"%s\" is an \"float\".\n", lineCount, charCount, yytext);
+    if(start == 1 && charCount == 1)
+        printf("Line %d : ", lineCount++);
+	printf("%s", yytext);
 	charCount += yyleng;
+	return NUM_FLOAT;
 }
 {integer} {
-	printf("Line: %d, 1st char: %d, \"%s\" is an \"integer\".\n", lineCount, charCount, yytext);
+    if(start == 1 && charCount == 1)
+        printf("Line %d : ", lineCount++);
+	printf("%s", yytext);
 	charCount += yyleng;
+	return NUM_INTEGER;
 }
 {comment} {
-	printf("Line: %d, 1st char: %d, \"%s\" is an \"comment\".\n", lineCount, charCount, yytext);
-	for(int i = 0; i < yyleng; i++)
-		if(yytext[i] == '\n')
-			lineCount++;
-	charCount += yyleng;
+    if((start == 1 && charCount == 1))
+        printf("Line %d : ", lineCount++);
+	for(int i = 0; i < yyleng; i++) {
+        printf("%c", yytext[i]);
+		if(yytext[i] == '\n') {
+            printf("Line %d : ", lineCount++);
+            charCount=1;
+        }
+        else
+            charCount++;
+    }
 }
 {string} {
 	char* temp = (char*)malloc(yyleng);
@@ -92,56 +176,29 @@ error_id [0-9\^#][A-Za-z0-9_\$]+
 		temp++;
 	}
 	*temp = '\0';
-	printf("Line: %d, 1st char: %d, %s is an \"string\".\n", lineCount, charCount, dst);
-	charCount += yyleng;
-}
-{error_string} {
-	printf("Line: %d, 1st char: %d, \"%s\" is an \"INVALID STRING\".\n", lineCount, charCount, yytext);
-	charCount += yyleng;
+    if(start == 1 && charCount == 1)
+        printf("Line %d : ", lineCount++);
+	printf("%s", dst);
+	return VAR_STRING;
 }
 {id} {
-	printf("Line: %d, 1st char: %d, \"%s\" is an \"ID\".\n", lineCount, charCount, yytext);
+    if(start == 1 && charCount == 1)
+        printf("Line %d : ", lineCount++);
+	printf("%s", yytext);
 	charCount += yyleng;
-	insert(yytext);
+    yylval.the_id = strdup(yytext);
+	return ID;
 }
 {error_id} {
-	printf("Line: %d, 1st char: %d, \"%s\" is an \"INVALID ID\".\n", lineCount, charCount, yytext);
+	if(start == 1 && charCount == 1)
+        printf("Line %d : ", lineCount++);
+	printf("%s", yytext);
 	charCount += yyleng;
 }
 . {
-	printf("Line: %d, 1st char: %d, \"%s\" is an \"GENERAL ERROR\".\n", lineCount, charCount, yytext);
+    if(start == 1 && charCount == 1)
+        printf("Line %d : ", lineCount++);
+	printf("%s", yytext);
 	charCount += yyleng;
 }
 %%
-
-int main() {
-	create();
-    yylex();
-	dump();
-    return 0;
-}
-void create() {
-	table = (char **) malloc(MAX_TABLE_NUM*sizeof(char *));
-}
-int lookup(char* s) {
-	for(int i = 0; i < count_symbol; i++) 
-		if(strcmp(s, table[i]) == 0)
-			return i;
-	return -1;
-}
-int insert(char* s) {
-	int flag = lookup(s);
-	if(flag == -1) {
-		table[count_symbol] = (char*) malloc(sizeof(*s));
-		strcpy(table[count_symbol], s);
-		count_symbol++;
-		return count_symbol-1;
-	}
-	else
-		return flag;
-}
-void dump() {
-	printf("The symbol table contains:\n");
-	for(int i = 0; i < count_symbol; i++)
-		printf("%s\n", table[i]);
-}

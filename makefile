@@ -1,10 +1,11 @@
-FILE_lex=	B073040030.l
-PROG_lex=	lex.yy.c
-all:	$(PROG_lex)
-	gcc $(PROG_lex) -o demo -lfl
+all:	clean y.tab.c lex.yy.c
+	gcc lex.yy.c y.tab.c -ly -lfl -o a.out
 
-$(PROG_lex):	$(FILE_lex)
-	flex $(FILE_lex)
+y.tab.c:
+	bison -y -d B073040030.y
+
+lex.yy.c:
+	flex B073040030.l
 
 clean:
-	rm demo $(PROG_lex)
+	rm -f a.out lex.yy.c y.tab.c y.tab.h
